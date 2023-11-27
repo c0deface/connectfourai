@@ -1,16 +1,21 @@
 import pygame
 from pygame.locals import *
+import random
+import time
 
-window = None
+ROWS = 6
+COLS = 7
 
 class Board:
-    def __init__(self, rows, cols):
+    def __init__(self, w, rows, cols):
         self.rows = rows
         self.cols = cols
         self.board = [[' ' for _ in range(cols)] for _ in range(rows)]
         self.open = [0 for _ in range(cols)]
 
-        window.fill("blue")
+        self.window = w
+        self.window.fill("blue")
+        print('BLUE')
         pygame.display.update()
 
         self.drawFull()
@@ -26,7 +31,7 @@ class Board:
             color = "red"
         if self.board[r][c] == 'Y':
             color = "yellow"
-        pygame.draw.circle(window, color, (50+(c*100), 50+((self.rows-1-r)*100)), 40, 40)
+        pygame.draw.circle(self.window, color, (50+(c*100), 50+((self.rows-1-r)*100)), 40, 40)
         pygame.display.update()
 
     def drawFull(self):
@@ -37,6 +42,9 @@ class Board:
     
     def isValid(self, x):
         return self.open[x // 100] != self.rows
+    
+    def openCols(self):
+        return [x for x in range(len(self.open)) if self.open[x] != self.rows]
 
     def isOver(self):
         # is draw
@@ -70,22 +78,55 @@ class Board:
                     return True
         return False
 
+class Player:
+    def __init__(self, b, c):
+        self.board = b
+        self.color = c
+    def move(self):
+        pass
+
+class Human(Player):
+    def __init__(self, b, c):
+        super().__init__(b, c)
+    def move(self):
+        moved = False
+        while not moved:
+            ev = pygame.event.get()
+            for e in ev:
+                if e.type == pygame.MOUSEBUTTONUP:
+                    pos = pygame.mouse.get_pos()
+                    if self.board.isValid(pos[0]):
+                        self.board.drop(pos[0] // 100, self.color)
+                        moved = True
+                        return
+
+class Computer(Player):
+    def __init__(self, b, c):
+        super().__init__(b, c)
+    def move(self):
+        ev = pygame.event.get()
+        time.sleep(0.5)
+        col = random.choice(self.board.openCols())
+        self.board.drop(col, self.color)
+        print('COMPUTER')
+
+class Game:
+    def __init__(self, w, p1, p2):
+        self.board = Board(w, ROWS, COLS)
+        self.players = [Human(self.board, 'R') if p1 == 'H' else Computer(self.board, 'R'),
+                        Human(self.board, 'Y') if p2 == 'H' else Computer(self.board, 'Y')]
+    def start(self):
+        c = 0
+        while not self.board.isOver():
+            self.players[c].move()
+            c = 1 - c
+        pygame.display.update()
+        time.sleep(20)
 
 pygame.display.init()
-window = pygame.display.set_mode((7*100, 6*100))
-b = Board(6, 7)
-
+w = pygame.display.set_mode((COLS*100, ROWS*100))
+w.fill("blue")
 pygame.display.update()
-colors = ['R', 'Y']
-c = 0
-while not b.isOver():
-    ev = pygame.event.get()
-    for e in ev:
-        if e.type == pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            if b.isValid(pos[0]):
-                print("valid")
-                b.drop(pos[0] // 100, colors[c])
-                c = 1 - c
-
+g = Game(w, 'H', 'H')
+g.start()
 print("IT OVER")
