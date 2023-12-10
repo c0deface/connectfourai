@@ -7,12 +7,13 @@ ROWS = 6
 COLS = 7
 
 class Board:
-    def __init__(self, w, rows, cols):
+    def __init__(self, w, rows, cols, debug=False):
         self.rows = rows
         self.cols = cols
         self.board = [[' ' for _ in range(cols)] for _ in range(rows)]
         self.open = [0 for _ in range(cols)]
         self.result = None
+        self.debug = debug
 
         self.window = w
         if self.window != None:
@@ -25,7 +26,8 @@ class Board:
     def drop(self, clm, clr):
         self.board[self.open[clm]][clm] = clr
         self.open[clm] += 1
-        # print(f'{clr} dropped a disk in column {clm+1}')
+        if self.debug:
+            print(f'{clr} dropped a disk in column {clm+1}')
         self.drawCell(clm, self.open[clm] - 1)
     
     def drawCell(self, c, r):
@@ -46,10 +48,10 @@ class Board:
                 for c in range(len(self.board[0])):
                     self.drawCell(c, r)
                     pygame.display.update()
-        # else:
-        #     for r in range(len(self.board)):
-        #         print(self.board[len(self.board)-1-r])
-        #     print()
+        elif self.debug:
+            for r in range(len(self.board)):
+                print(self.board[len(self.board)-1-r])
+            print()
     
     def isValid(self, x):
         return self.open[x // 100] != self.rows
@@ -141,8 +143,8 @@ class Game:
         time.sleep(20)
 
 class SimGame:
-    def __init__(self, p1, p2):
-        self.board = Board(None, ROWS, COLS)
+    def __init__(self, p1, p2, debug=False):
+        self.board = Board(None, ROWS, COLS, debug=debug)
         self.players = [p1(self.board, 'R'), p2(self.board, 'Y')]
     def play(self):
         c = 0
@@ -166,4 +168,9 @@ def simulateMany(p1, p2, N):
         result[r] += 1
     return result
 
-print(simulateMany(Computer, Computer, 1000))
+def simulateDebug(p1, p2):
+    g = SimGame(p1, p2, debug=True)
+    return g.play()
+
+# print(simulateMany(Computer, Computer, 1000))
+print(simulateDebug(Computer, Computer))
