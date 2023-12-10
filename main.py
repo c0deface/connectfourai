@@ -143,7 +143,7 @@ class Game:
 class SimGame:
     def __init__(self, p1, p2):
         self.board = Board(None, ROWS, COLS)
-        self.players = [Computer(self.board, 'R'), Computer(self.board, 'Y')]
+        self.players = [p1(self.board, 'R'), p2(self.board, 'Y')]
     def play(self):
         c = 0
         while True:
@@ -157,10 +157,13 @@ class SimGame:
 # w.fill("blue")
 # pygame.display.update()
 
-result = {"R": 0, "Y": 0, "D": 0}
-for _ in range(100000):
-    # print(_)
-    g = SimGame('C', 'C')
-    r = g.play()
-    result[r] += 1
-print(result)
+def simulateMany(p1, p2, N):
+    result = {"R": 0, "Y": 0, "D": 0}
+    for _ in range(N):
+        # print(_)
+        g = SimGame(p1, p2)
+        r = g.play()
+        result[r] += 1
+    return result
+
+print(simulateMany(Computer, Computer, 1000))
