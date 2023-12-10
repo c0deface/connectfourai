@@ -2,9 +2,13 @@ import pygame
 from pygame.locals import *
 import random
 import time
+import signal
 
 ROWS = 6
 COLS = 7
+
+def handleTimeout(signum, frame):
+    raise TimeoutError
 
 class Board:
     def __init__(self, w, rows, cols, debug=False):
@@ -99,16 +103,29 @@ class Board:
         return self.result
 
 class Player:
-    def __init__(self, b, c):
+    def __init__(self, b, c, t=0):
         self.board = b
         self.color = c
-    def move(self):
+        self.timeControl = t
+        self.nextMove = 0
+    def moveInternal(self):
         pass
+    def move(self):
+        self.nextMove = random.choice(self.board.openCols())
+        signal.signal(signal.SIGALRM, handleTimeout)
+        signal.alarm(self.timeControl)
+        try:
+            self.moveInternal()
+        except TimeoutError:
+            self.board.drop(self.nextMove, self.color)
+        else:
+            self.board.drop(self.nextMove, self.color)
+        signal.alarm(0)
 
 class Human(Player):
-    def __init__(self, b, c):
-        super().__init__(b, c)
-    def move(self):
+    def __init__(self, b, c, t=0):
+        super().__init__(b, c, t)
+    def moveInternal(self):
         moved = False
         while not moved:
             ev = pygame.event.get()
@@ -116,19 +133,18 @@ class Human(Player):
                 if e.type == pygame.MOUSEBUTTONUP:
                     pos = pygame.mouse.get_pos()
                     if self.board.isValid(pos[0]):
-                        self.board.drop(pos[0] // 100, self.color)
+                        self.nextMove = pos[0] // 100
                         moved = True
                         return
 
 class Computer(Player):
-    def __init__(self, b, c):
-        super().__init__(b, c)
-    def move(self):
+    def __init__(self, b, c, t=0):
+        super().__init__(b, c, t)
+    def moveInternal(self):
         # ev = pygame.event.get()
         # time.sleep(0.5)
         col = random.choice(self.board.openCols())
-        self.board.drop(col, self.color)
-
+        self.nextMove = col
 class Game:
     def __init__(self, w, p1, p2):
         self.board = Board(w, ROWS, COLS)
@@ -143,7 +159,7 @@ class Game:
         time.sleep(20)
 
 class SimGame:
-    def __init__(self, p1, p2, debug=False):
+    def __init__(self, p1, p2, t1, t2, debug=False):
         self.board = Board(None, ROWS, COLS, debug=debug)
         self.players = [p1(self.board, 'R'), p2(self.board, 'Y')]
     def play(self):
@@ -168,9 +184,9 @@ def simulateMany(p1, p2, N):
         result[r] += 1
     return result
 
-def simulateDebug(p1, p2):
-    g = SimGame(p1, p2, debug=True)
+def simulateDebug(p1, p2, t1, t2):
+    g = SimGame(p1, p2, t1, t2, debug=True)
     return g.play()
 
 # print(simulateMany(Computer, Computer, 1000))
-print(simulateDebug(Computer, Computer))
+print(simulateDebug(Computer, Computer, 1, 1))
