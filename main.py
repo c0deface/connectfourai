@@ -3,6 +3,7 @@ from pygame.locals import *
 import random
 import time
 import signal
+from minimax import *
 
 ROWS = 6
 COLS = 7
@@ -28,6 +29,7 @@ class Board:
         self.drawFull()
     
     def drop(self, clm, clr):
+        print(clm)
         self.board[self.open[clm]][clm] = clr
         self.open[clm] += 1
         if self.debug:
@@ -107,7 +109,7 @@ class Player:
         self.board = b
         self.color = c
         self.timeControl = t
-        self.nextMove = 0
+        self.nextMove = random.choice(self.board.openCols())
     def moveInternal(self):
         pass
     def move(self):
@@ -137,19 +139,30 @@ class Human(Player):
                         moved = True
                         return
 
-class Computer(Player):
+class RandomAI(Player):
     def __init__(self, b, c, t=0):
         super().__init__(b, c, t)
     def moveInternal(self):
         # ev = pygame.event.get()
-        # time.sleep(0.5)
         col = random.choice(self.board.openCols())
         self.nextMove = col
+
+class PlainMinMaxAI(Player):
+    def __init__(self, b, c, t=0):
+        super().__init__(b, c, t)
+
+    def moveInternal(self):
+        # ev = pygame.event.get()
+        ply = 1
+        while True:
+            self.nextMove = minimax(self.board.board, ply, True)[1]
+
+
 class Game:
     def __init__(self, w, p1, p2):
         self.board = Board(w, ROWS, COLS)
-        self.players = [Human(self.board, 'R') if p1 == 'H' else Computer(self.board, 'R'),
-                        Human(self.board, 'Y') if p2 == 'H' else Computer(self.board, 'Y')]
+        self.players = [Human(self.board, 'R') if p1 == 'H' else RandomAI(self.board, 'R'),
+                        Human(self.board, 'Y') if p2 == 'H' else RandomAI(self.board, 'Y')]
     def start(self):
         c = 0
         while not self.board.isOver():
@@ -161,7 +174,7 @@ class Game:
 class SimGame:
     def __init__(self, p1, p2, t1, t2, debug=False):
         self.board = Board(None, ROWS, COLS, debug=debug)
-        self.players = [p1(self.board, 'R'), p2(self.board, 'Y')]
+        self.players = [p1(self.board, 'R', t=t1), p2(self.board, 'Y', t=t2)]
     def play(self):
         c = 0
         while True:
@@ -189,4 +202,4 @@ def simulateDebug(p1, p2, t1, t2):
     return g.play()
 
 # print(simulateMany(Computer, Computer, 1000))
-print(simulateDebug(Computer, Computer, 1, 1))
+print(simulateDebug(PlainMinMaxAI, PlainMinMaxAI, 1, 1))
