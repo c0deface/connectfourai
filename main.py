@@ -11,7 +11,9 @@ COLS = 7
 def handleTimeout(signum, frame):
     raise TimeoutError
 
+## Representation of a Board, contains GUI Portion that is currently commented out/optional
 class Board:
+    ## constructor
     def __init__(self, w, rows, cols, debug=False):
         self.rows = rows
         self.cols = cols
@@ -23,11 +25,11 @@ class Board:
         self.window = w
         if self.window != None:
             self.window.fill("blue")
-            print('BLUE')
             pygame.display.update()
 
         self.drawFull()
     
+    ## drop disk of given color in given column
     def drop(self, clm, clr):
         # print(clm)
         self.board[self.open[clm]][clm] = clr
@@ -36,6 +38,7 @@ class Board:
             print(f'{clr} dropped a disk in column {clm}')
         self.drawCell(clm, self.open[clm] - 1)
     
+    ## redraw cell, prints entire board if GUI off
     def drawCell(self, c, r):
         if self.window != None:
             color = "light blue"
@@ -48,6 +51,7 @@ class Board:
         else:
             self.drawFull()
 
+    ## Draws full board, GUI optional
     def drawFull(self):
         if self.window != None:
             for r in range(len(self.board)):
@@ -60,12 +64,16 @@ class Board:
                 print(self.board[len(self.board)-1-r])
             # print(calc_heuristic(self.board, 'R'))
 ####################################################   
+    
+    ## is a valid mouseclick X coordinate
     def isValid(self, x):
         return self.open[x // 100] != self.rows
     
+    ## return open columns
     def openCols(self):
         return [x for x in range(len(self.open)) if self.open[x] != self.rows]
 
+    ## return if game is over
     def isOver(self):
         # is draw
         isDraw = True
@@ -105,14 +113,20 @@ class Board:
     def getResult(self):
         return self.result
 
+## player superclass
 class Player:
+    ## constructor
     def __init__(self, b, c, t=0):
         self.board = b
         self.color = c
         self.timeControl = t
         self.nextMove = random.choice(self.board.openCols())
+    
+    ## implemented in subclasses, calls specific function
     def moveInternal(self):
         pass
+
+    ## time control based move function
     def move(self):
         self.nextMove = random.choice(self.board.openCols())
         signal.signal(signal.SIGALRM, handleTimeout)
@@ -131,9 +145,12 @@ class Player:
         #         print(self.boards[b][5 - i])
         signal.alarm(0)
 
+## Human Player
 class Human(Player):
     def __init__(self, b, c, t=0):
         super().__init__(b, c, t)
+    
+    ## Get user input via mouse clicks
     def moveInternal(self):
         moved = False
         while not moved:
@@ -146,6 +163,7 @@ class Human(Player):
                         moved = True
                         return
 
+## AI that picks random column
 class RandomAI(Player):
     def __init__(self, b, c, t=0):
         super().__init__(b, c, t)
@@ -154,6 +172,7 @@ class RandomAI(Player):
         col = random.choice(self.board.openCols())
         self.nextMove = col
 
+## Plain Minimax
 class PlainMinMaxAI(Player):
     def __init__(self, b, c, t=0):
         super().__init__(b, c, t)
@@ -170,8 +189,10 @@ class PlainMinMaxAI(Player):
                 # print(f'PLY: {ply}')
                 # print(f'RESULT: {result}')
                 break
+            ## uses iterative deepening
             ply += 1
 
+## Uses alpha-beta pruning
 class AlphaBetaAI(Player):
     def __init__(self, b, c, t=0):
         super().__init__(b, c, t)
@@ -188,8 +209,10 @@ class AlphaBetaAI(Player):
                 # print(f'PLY: {ply}')
                 # print(f'RESULT: {result}')
                 break
+            ## uses iterative deepening
             ply += 1
 
+## uses move ordering
 class MoveOrderAI(Player):
     def __init__(self, b, c, t=0):
         super().__init__(b, c, t)
@@ -206,9 +229,10 @@ class MoveOrderAI(Player):
                 # print(f'PLY: {ply}')
                 # print(f'RESULT: {result}')
                 break
+            ## uses iterative deepening
             ply += 1
 
-
+## original attempt at GUI/human vs. CPU
 class Game:
     def __init__(self, w, p1, p2):
         self.board = Board(w, ROWS, COLS)
@@ -222,6 +246,7 @@ class Game:
         pygame.display.update()
         time.sleep(20)
 
+## Simulates games not for user to view but to gather data
 class SimGame:
     def __init__(self, p1, p2, t1, t2, debug=False):
         self.board = Board(None, ROWS, COLS, debug=debug)
@@ -239,6 +264,7 @@ class SimGame:
 # w.fill("blue")
 # pygame.display.update()
 
+## Simulates many games between two players with given time controls
 def simulateMany(p1, p2, t1, t2, N):
     result = {"P1": 0, "P2": 0, "D": 0}
     for i in range(N):
@@ -258,11 +284,10 @@ def simulateMany(p1, p2, t1, t2, N):
         result[r] += 1
     return result
 
+## simulates one game, allows for debugging
 def simulateDebug(p1, p2, t1, t2):
     g = SimGame(p1, p2, t1, t2, debug=True)
     return g.play()
-
-print(simulateMany(PlainMinMaxAI, AlphaBetaAI, 3, 3, 10))
 
 ### TEST CASES
 # print(simulateMany(PlainMinMaxAI, PlainMinMaxAI, 1, 3, 10))

@@ -203,7 +203,7 @@ def is_terminal_node(board):
         return None, False
 
 
-#MINIMAX IMPLEMENTATION with depth
+#MINIMAX IMPLEMENTATIONS, each are mostly identical with minor changes
 def minimax(board, depth, maximizing_player, printPaths=False):
     # if it's over return as such
 
@@ -280,7 +280,7 @@ def alphabeta(board, depth, maximizing_player, alpha, beta, printPaths=False):
     for col in valid_moves:
         temp_board = [[x for x in row] for row in board]
         drop(temp_board, col, p)
-
+        ## ALPHA BETA SPECIFIC
         _, new_score, r, a, b, c = alphabeta(temp_board, depth - 1, not maximizing_player, -beta, -alpha)
 
         if printPaths:
@@ -317,6 +317,7 @@ def moveorder(board, depth, maximizing_player, alpha, beta, printPaths=False):
     p = PLAYER1 if maximizing_player else PLAYER2
     opp = PLAYER2 if p == PLAYER1 else PLAYER1
 
+    ## MOVE ORDERING SPECIFIC
     approx = []
     for col in valid_moves:
         temp_board = [[x for x in row] for row in board]
