@@ -1,5 +1,5 @@
-#import pygame
-#from pygame.locals import *
+import pygame
+from pygame.locals import *
 import random
 import time
 import signal
@@ -29,7 +29,6 @@ class Board:
         self.drawFull()
     
     def drop(self, clm, clr):
-        print(clm)
         self.board[self.open[clm]][clm] = clr
         self.open[clm] += 1
         if self.debug:
@@ -57,7 +56,7 @@ class Board:
         elif self.debug:
             for r in range(len(self.board)):
                 print(self.board[len(self.board)-1-r])
-            print()
+            print(calc_heuristic(self.board, 'R'))
     
     def isValid(self, x):
         return self.open[x // 100] != self.rows
@@ -155,7 +154,7 @@ class PlainMinMaxAI(Player):
         # ev = pygame.event.get()
         ply = 1
         while True:
-            self.nextMove = minimax(self.board.board, ply, True)[1]
+            self.nextMove = minimax(self.board.board, ply, True)[0]
             ply += 1
 
 
