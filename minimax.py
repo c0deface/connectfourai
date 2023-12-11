@@ -165,7 +165,7 @@ def minimax(board, depth, maximizing_player, printPaths=False):
 
     p = PLAYER1 if maximizing_player else PLAYER2
     if depth == 0 or is_terminal:
-        return (None, calc_heuristic(board, p), result)
+        return (None, -calc_heuristic(board, p), result, None, None, None)
 
     value = -float('inf')
     column = random.choice(valid_moves)
@@ -174,7 +174,7 @@ def minimax(board, depth, maximizing_player, printPaths=False):
     for col in valid_moves:
         temp_board = [[x for x in row] for row in board]
         drop(temp_board, col, p)
-        _, new_score, result = minimax(temp_board, depth - 1, not maximizing_player)
+        _, new_score, result, a, b, c = minimax(temp_board, depth - 1, not maximizing_player)
         if printPaths:
             scores[col] = new_score
             terminals[col] = is_terminal_node(temp_board)
