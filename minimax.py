@@ -1,19 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Dec  7 09:08:36 2023
 
-@author: Koji
-"""
-
-import numpy as np
+import numpy as np 
 
 ROWS = 6
 COLS = 7
 
 # players
-EMPTY = 0
-PLAYER1 = 1
-PLAYER2 = 2
+EMPTY = ' '
+PLAYER1 = 'R'
+PLAYER2 = 'Y'
 
 
 def create_board():
@@ -65,25 +59,30 @@ def calc_heuristic(board, player):
     # Evaluate horizontally
     for row in range(ROWS):
         for col in range(COLS - 3):
-            window = list(board[row, col:col+4])
+            #print(board)
+            
+            window = list(board[row][col:col+4])
+            
             score += initiate_heuristic(window, player)
 
     # Evaluate vertically
     for col in range(COLS):
         for row in range(ROWS - 3):
-            window = list(board[row:row+4, col])
+            print(row)
+            print(col)
+            window = list(board[row:row+4][col])
             score += initiate_heuristic(window, player)
 
     # Evaluate diagonally (positive slope)
     for row in range(ROWS - 3):
         for col in range(COLS - 3):
-            window = list(board[row:row+4, col:col+4].diagonal())
+            window = list(board[row:row+4][ col:col+4].diagonal())
             score += initiate_heuristic(window, player)
 
     # Evaluate diagonally (negative slope)
     for row in range(3, ROWS):
         for col in range(COLS - 3):
-            window = list(board[row-3:row+1, col:col+4][::-1].diagonal())
+            window = list(board[row-3:row+1][ col:col+4][::-1].diagonal())
             score += initiate_heuristic(window, player)
 
     return score
@@ -107,6 +106,7 @@ def minimax(board, depth, maximizing_player):
             else:  # Game is a draw
                 return (None, 0)
         else:  # Depth is zero
+            #print(board)
             return (None, calc_heuristic(board, PLAYER2))
 
     if maximizing_player:
@@ -166,6 +166,8 @@ def get_valid_moves(board):
     return [col for col in range(COLS) if is_valid(board, col)]
 
 
+
+
 #########################################################
 # PLAY THE GAME
 
@@ -219,3 +221,108 @@ def play_connect_four():
 
 if __name__ == "__main__":
     play_connect_four()
+##################################################### minmax class
+
+class MiniMaxAi:
+    def __init__(self, player, max_depth=3):
+        self.PLAYER1 = 1
+        self.PLAYER2 = 2
+        self.ROWS = 6
+        self.COLS = 7
+        self.MAX_DEPTH = max_depth
+        self.player = player
+
+    def move(self, board):
+        _, best_move = self.minimax(board, self.max_depth, self.player)
+        return best_move
+
+    def minimax(self, board, depth, maximizing_player):
+        valid_moves = [col for col in range(self.COLS) if board.is_valid(col)]
+        is_terminal = board.winning_move(self.PLAYER1) or board.winning_move(self.PLAYER2) or len(valid_moves) == 0
+
+        if depth == 0 or is_terminal:
+            if is_terminal:
+                if board.winning_move(self.PLAYER2):
+                    return (None, 100000000000000)
+                elif board.winning_move(self.PLAYER1):
+                    return (None, -100000000000000)
+                else:  # NO WINNER
+                    return (None, 0)
+            else:  # depth == 0
+                return (None, board.calc_heuristic(self.PLAYER2))
+
+        if maximizing_player:
+            value = -np.inf
+            column = np.random.choice(valid_moves)
+            for col in valid_moves:
+                temp_board = board.copy()
+                temp_board.drop(col, self.PLAYER2)
+                new_score = self.minimax(temp_board, depth - 1, False)[1]
+                if new_score > value:
+                    value = new_score
+                    column = col
+            return column, value
+
+        else:  # Minimizing player
+            value = np.inf
+            column = np.random.choice(valid_moves)
+            for col in valid_moves:
+                temp_board = board.copy()
+                temp_board.drop(col, self.PLAYER1)
+                new_score = self.minimax(temp_board, depth - 1, True)[1]
+                if new_score < value:
+                    value = new_score
+                    column = col
+            return column, value
+
+    def calc_heuristic(self, player):
+        score = 0
+        for col in range(self.COLS - 3):
+            for row in range(self.ROWS):
+                window = list(self.board[row, col:col+4])
+                score += initiate_heuristic(window, player)
+
+        for col in range(self.COLS):
+            for row in range(self.ROWS - 3):
+                window = list(self.board[row:row+4, col])
+                score += initiate_heuristic(window, player)
+
+        for row in range(self.ROWS - 3):
+            for col in range(self.COLS - 3):
+                window = list(self.board[row:row+4, col:col+4].diagonal())
+                score += initiate_heuristic(window, player)
+
+        for row in range(3, self.ROWS):
+            for col in range(self.COLS - 3):
+                window = list(self.board[row-3:row+1, col:col+4][::-1].diagonal())
+                score += initiate_heuristic(window, player)
+
+        return score
+
+    def winning_move(self, player):
+       
+        for col in range(self.COLS - 3):
+            for row in range(self.ROWS):
+                if self.board[row][col] == player and self.board[row][col+1] == player and self.board[row][col+2] == player and self.board[row][col+3] == player:
+                    return True
+
+        for col in range(self.COLS):
+            for row in range(self.ROWS - 3):
+                if self.board[row][col] == player and self.board[row+1][col] == player and self.board[row+2][col] == player and self.board[row+3][col] == player:
+                    return True
+
+        for col in range(self.COLS - 3):
+            for row in range(self.ROWS - 3):
+                if self.board[row][col] == player and self.board[row+1][col+1] == player and self.board[row+2][col+2] == player and self.board[row+3][col+3] == player:
+                    return True
+
+        for col in range(self.COLS - 3):
+            for row in range(3, self.ROWS):
+                if self.board[row][col] == player and self.board[row-1][col+1] == player and self.board[row-2][col+2] == player and self.board[row-3][col+3] == player:
+                    return True
+
+        return False 
+
+    def switch_player(self, player):
+        return PLAYER1 if player == PLAYER2 else PLAYER2
+

@@ -1,5 +1,5 @@
-import pygame
-from pygame.locals import *
+#import pygame
+#from pygame.locals import *
 import random
 import time
 import signal
