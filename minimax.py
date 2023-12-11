@@ -44,13 +44,17 @@ def initiate_heuristic(window, p):
         return float('inf')
     # if oppenent has 3 lined up they win
     elif window.count(opp) == 3 and window.count(EMPTY) == 1:
-        return -float('inf')
+        return -100
+    #-float('inf')
     # if we have 3 lined up 
     elif window.count(p) == 3 and window.count(EMPTY) == 1:
         return 10
     # if opponent has 2 lined up, denying opponent is a bit more important than your own 2pcs at this stage
     elif window.count(opp) == 2 and window.count(EMPTY) == 2:
         return -12
+    # if we have 2 lined up
+    elif window.count(p) ==2 and window.count(EMPTY) == 1:
+        return 2
     else:
         return 0
 
@@ -179,7 +183,9 @@ def minimax(board, depth, maximizing_player, printPaths=False):
     for col in valid_moves:
         temp_board = [[x for x in row] for row in board]
         drop(temp_board, col, p)
+# switch to minimizer
         _, new_score, result, a, b, c = minimax(temp_board, depth - 1, not maximizing_player)
+
         if printPaths:
             scores[col] = new_score
             terminals[col] = is_terminal_node(temp_board)
