@@ -123,12 +123,12 @@ class Player:
             self.board.drop(self.nextMove, self.color)
         else:
             self.board.drop(self.nextMove, self.color)
-        print(self.color, self.scores)
-        print(self.terminals)
-        for b in self.boards:
-            print(b)
-            for i in range(len(self.boards[b])):
-                print(self.boards[b][5 - i])
+        # print(self.color, self.scores)
+        # print(self.terminals)
+        # for b in self.boards:
+        #     print(b)
+        #     for i in range(len(self.boards[b])):
+        #         print(self.boards[b][5 - i])
         signal.alarm(0)
 
 class Human(Player):
@@ -162,12 +162,12 @@ class PlainMinMaxAI(Player):
         # ev = pygame.event.get()
         ply = 1
         while True:
-            self.nextMove, _, scores, result, terminals, boards = minimax(self.board.board, ply, True, printPaths=True)
+            self.nextMove, _, scores, result, terminals, boards = minimax(self.board.board, ply, self.color == 'R', printPaths=True)
             self.scores = scores
             self.terminals = terminals
             self.boards = boards
-            if result != None:
-                break
+            # if result != None:
+            #     break
             ply += 1
 
 
