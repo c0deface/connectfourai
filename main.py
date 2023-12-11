@@ -262,8 +262,28 @@ def simulateDebug(p1, p2, t1, t2):
     g = SimGame(p1, p2, t1, t2, debug=True)
     return g.play()
 
-print(simulateMany(MoveOrderAI, PlainMinMaxAI, 1, 3, 10))
-# print(simulateDebug(AlphaBetaAI, MoveOrderAI, 1, 1))
+print(simulateMany(PlainMinMaxAI, AlphaBetaAI, 3, 3, 10))
+
+### TEST CASES
+# print(simulateMany(PlainMinMaxAI, PlainMinMaxAI, 1, 3, 10))
+# print(simulateMany(PlainMinMaxAI, AlphaBetaAI, 1, 1, 10))
+# print(simulateMany(PlainMinMaxAI, AlphaBetaAI, 1, 3, 10))
+# print(simulateMany(PlainMinMaxAI, MoveOrderAI, 1, 1, 10))
+# print(simulateMany(PlainMinMaxAI, MoveOrderAI, 1, 3, 10))
+
+# print(simulateMany(PlainMinMaxAI, AlphaBetaAI, 3, 1, 10))
+# print(simulateMany(PlainMinMaxAI, AlphaBetaAI, 3, 3, 10))
+# print(simulateMany(PlainMinMaxAI, MoveOrderAI, 3, 1, 10))
+# print(simulateMany(PlainMinMaxAI, MoveOrderAI, 3, 3, 10))
+
+# print(simulateMany(AlphaBetaAI, AlphaBetaAI, 1, 3, 10))
+# print(simulateMany(PlainMinMaxAI, MoveOrderAI, 1, 1, 10))
+# print(simulateMany(PlainMinMaxAI, MoveOrderAI, 1, 3, 10))
+
+# print(simulateMany(PlainMinMaxAI, MoveOrderAI, 3, 1, 10))
+# print(simulateMany(PlainMinMaxAI, MoveOrderAI, 3, 3, 10))
+
+# print(simulateMany(MoveOrderAI, MoveOrderAI, 1, 3, 10))
 
 ### DEBUGGING
 
