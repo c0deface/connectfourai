@@ -58,7 +58,7 @@ class Board:
         elif self.debug:
             for r in range(len(self.board)):
                 print(self.board[len(self.board)-1-r])
-            print(calc_heuristic(self.board, 'R'))
+            # print(calc_heuristic(self.board, 'R'))
 ####################################################   
     def isValid(self, x):
         return self.open[x // 100] != self.rows
@@ -123,7 +123,7 @@ class Player:
             self.board.drop(self.nextMove, self.color)
         else:
             self.board.drop(self.nextMove, self.color)
-        # print(self.color, self.scores)
+        print(self.color, self.scores)
         # print(self.terminals)
         # for b in self.boards:
         #     print(b)
@@ -162,12 +162,13 @@ class PlainMinMaxAI(Player):
         # ev = pygame.event.get()
         ply = 1
         while True:
-            self.nextMove, _, scores, result, terminals, boards = minimax(self.board.board, ply, self.color == 'R', printPaths=True)
+            self.nextMove, _,  result, scores, terminals, boards = minimax(self.board.board, ply, self.color == 'R', printPaths=True)
             self.scores = scores
             self.terminals = terminals
             self.boards = boards
-            # if result != None:
-            #     break
+            if result != None:
+                print(f'RESLT: {result}')
+                break
             ply += 1
 
 
