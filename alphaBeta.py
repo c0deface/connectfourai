@@ -19,7 +19,8 @@ def create_board():
 def is_valid(board, col):
     return board[ROWS-1][col] == EMPTY
 
-# return a list of columns that are not full/ that yoyu can still place a piece in
+
+# return a list of columns you can add another piece to
 def get_valid_moves(board):
     return [col for col in range(COLS) if is_valid(board, col)]
 
@@ -30,7 +31,8 @@ def drop(board, col, player):
         if board[row][col] == EMPTY:
             board[row][col] = player
             break
-    
+
+
 # basic heuristic for moves
 def initiate_heuristic(window, p):
     # i should have 4
@@ -39,7 +41,7 @@ def initiate_heuristic(window, p):
     # p = player , opp = opponent - 
     opp = PLAYER2 if p == PLAYER1 else PLAYER1
 
-    # if we have 4 we win, not really important since is_terminal should alos catch this
+    # if we have 4 we win
     if window.count(p) == 4:
         return float('inf')
     # if oppenent has 3 lined up they win
@@ -48,7 +50,7 @@ def initiate_heuristic(window, p):
     # if we have 3 lined up 
     elif window.count(p) == 3 and window.count(EMPTY) == 1:
         return 10
-    # if opponent has 2 lined up, denying opponent is a bit more important than your own 2pcs at this stage
+    # if opponent has 2 lined up
     elif window.count(opp) == 2 and window.count(EMPTY) == 2:
         return -12
     else:
@@ -150,9 +152,7 @@ def is_terminal_node(board):
                     return board[r][c], True
         return None, False
 
-
-#MINIMAX IMPLEMENTATION with depth
-def minimax(board, depth, maximizing_player, printPaths=False):
+def minimax(board, depth, alpha, beta, maximizing_player, printPaths=False):
     # if it's over return as such
 
     # get possible moves
@@ -168,7 +168,7 @@ def minimax(board, depth, maximizing_player, printPaths=False):
 
     p = PLAYER1 if maximizing_player else PLAYER2
 
-
+    
     if depth == 0 or is_terminal:
         return (None, calc_heuristic(board, p), result)
 
@@ -179,7 +179,7 @@ def minimax(board, depth, maximizing_player, printPaths=False):
     for col in valid_moves:
         temp_board = [[x for x in row] for row in board]
         drop(temp_board, col, p)
-        _, new_score, result = minimax(temp_board, depth - 1, not maximizing_player)
+        _, new_score, result = minimax(temp_board, depth - 1,alpha, beta,  not maximizing_player)
         if printPaths:
             scores[col] = new_score
             terminals[col] = is_terminal_node(temp_board)
@@ -189,6 +189,13 @@ def minimax(board, depth, maximizing_player, printPaths=False):
         if new_score >= value:
             value = new_score
             column = col
+        if maximizing_player:
+            alpha = max( value, alpha)
+            if alpha >= beta:
+                break
+        else:   
+            beta = min(beta, value)
+            if beta<= alpha:
+                break   
     return column, -value, result, scores, terminals, boards
-
-
+            

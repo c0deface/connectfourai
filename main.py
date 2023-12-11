@@ -54,11 +54,12 @@ class Board:
                 for c in range(len(self.board[0])):
                     self.drawCell(c, r)
                     pygame.display.update()
+####################################################
         elif self.debug:
             for r in range(len(self.board)):
                 print(self.board[len(self.board)-1-r])
             print(calc_heuristic(self.board, 'R'))
-    
+####################################################   
     def isValid(self, x):
         return self.open[x // 100] != self.rows
     
