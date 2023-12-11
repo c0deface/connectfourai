@@ -156,6 +156,7 @@ class PlainMinMaxAI(Player):
         ply = 1
         while True:
             self.nextMove = minimax(self.board.board, ply, True)[1]
+            ply += 1
 
 
 class Game:
