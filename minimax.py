@@ -128,29 +128,29 @@ def is_terminal_node(board):
                 isDraw = False
                 break
         if isDraw:
-            return True
+            return 'D', True
         
         # check horizontal
         for c in range(COLS-3):
             for r in range(ROWS):
                 if board[r][c] == board[r][c+1] == board[r][c+2] == board[r][c+3] != ' ':
-                    return True
+                    return board[r][c], True
         # check vertical
         for c in range(COLS):
             for r in range(ROWS-3):
                 if board[r][c] == board[r+1][c] == board[r+2][c] == board[r+3][c] != ' ':
-                    return True
+                    return board[r][c], True
         # check increasing diag
         for c in range(COLS-3):
             for r in range(ROWS-3):
                 if board[r][c] == board[r+1][c+1] == board[r+2][c+2] == board[r+3][c+3] != ' ':
-                    return True
+                    return board[r][c], True
         # check decreasing diag
         for c in range(COLS-3):
             for r in range(3, ROWS):
                 if board[r][c] == board[r-1][c+1] == board[r-2][c+2] == board[r-3][c+3] != ' ':
-                    return True
-        return False
+                    return board[r][c], True
+        return None, False
 
 
 #MINIMAX IMPLEMENTATION with depth
@@ -158,29 +158,33 @@ def minimax(board, depth, maximizing_player, printPaths=False):
     # if it's over return as such
     valid_moves = get_valid_moves(board)
     random.shuffle(valid_moves)
-    is_terminal = is_terminal_node(board)
+    is_terminal, result = is_terminal_node(board)
     scores = {}
     terminals = {}
     boards = {}
 
     p = PLAYER1 if maximizing_player else PLAYER2
     if depth == 0 or is_terminal:
-        return (None, calc_heuristic(board, p))
+        return (None, calc_heuristic(board, p), result)
 
     value = -float('inf')
     column = random.choice(valid_moves)
+    result = None
+
     for col in valid_moves:
         temp_board = [[x for x in row] for row in board]
         drop(temp_board, col, p)
-        new_score = minimax(temp_board, depth - 1, not maximizing_player)[1]
+        _, new_score, result = minimax(temp_board, depth - 1, not maximizing_player)
         if printPaths:
             scores[col] = new_score
             terminals[col] = is_terminal_node(temp_board)
             boards[col] = temp_board
+        # if result == p: # skip to the end, return
+        #     pass
         if new_score >= value:
             value = new_score
             column = col
-    return column, -value, scores, terminals, boards
+    return column, -value, result, scores, terminals, boards
 
 def winning_move(board, player):
     # Check for a win in all directions
