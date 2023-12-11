@@ -1,6 +1,7 @@
 
 import numpy as np
 import random
+import operator
 
 ROWS = 6
 COLS = 7
@@ -248,4 +249,113 @@ def minimax(board, depth, maximizing_player, printPaths=False):
         #     break
     return column, -value, result, scores, terminals, boards
 
+def alphabeta(board, depth, maximizing_player, alpha, beta, printPaths=False):
+    # if it's over return as such
+
+    # get possible moves
+    valid_moves = get_valid_moves(board)
+    # run minmax staring with one of the possibilities at random
+    random.shuffle(valid_moves)
+    # return board , true if we have reached a win OR a tie OR a full board
+    result, is_terminal = is_terminal_node(board)
+
+    scores = {}
+    terminals = {}
+    boards = {}
+
+    p = PLAYER1 if maximizing_player else PLAYER2
+    opp = PLAYER2 if p == PLAYER1 else PLAYER1
+
+    if depth == 0 or is_terminal:
+        # for i in range(len(board)):
+        #     print(board[5 - i])
+        # print(calc_heuristic(board, p))
+        return (None, -calc_heuristic(board, p), result, None, None, None)
+
+    valSet = False
+    value = -float('inf')
+    column = random.choice(valid_moves)
+    result = None
+
+    for col in valid_moves:
+        temp_board = [[x for x in row] for row in board]
+        drop(temp_board, col, p)
+
+        _, new_score, r, a, b, c = alphabeta(temp_board, depth - 1, not maximizing_player, -beta, -alpha)
+
+        if printPaths:
+            scores[col] = new_score
+            terminals[col] = is_terminal_node(temp_board)
+            boards[col] = temp_board
+        if new_score > value or not valSet:
+            value = new_score
+            column = col
+            result = r
+            valSet = True
+        if value > alpha:
+            alpha = value
+        if alpha >= beta:
+            break
+        # if result == p: # skip to the end, return
+        #     break
+    return column, -value, result, scores, terminals, boards
+
+def moveorder(board, depth, maximizing_player, alpha, beta, printPaths=False):
+    # if it's over return as such
+
+    # get possible moves
+    valid_moves = get_valid_moves(board)
+    # Sort moves for move ordering
+
+    # return board , true if we have reached a win OR a tie OR a full board
+    result, is_terminal = is_terminal_node(board)
+
+    scores = {}
+    terminals = {}
+    boards = {}
+
+    p = PLAYER1 if maximizing_player else PLAYER2
+    opp = PLAYER2 if p == PLAYER1 else PLAYER1
+
+    approx = []
+    for col in valid_moves:
+        temp_board = [[x for x in row] for row in board]
+        drop(temp_board, col, p)
+        approx.append((col, calc_heuristic(temp_board, opp)))
+        approx.sort(key=operator.itemgetter(1))
+    valid_moves = [x[0] for x in approx]
+
+    if depth == 0 or is_terminal:
+        # for i in range(len(board)):
+        #     print(board[5 - i])
+        # print(calc_heuristic(board, p))
+        return (None, -calc_heuristic(board, p), result, None, None, None)
+
+    valSet = False
+    value = -float('inf')
+    column = random.choice(valid_moves)
+    result = None
+
+    for col in valid_moves:
+        temp_board = [[x for x in row] for row in board]
+        drop(temp_board, col, p)
+
+        _, new_score, r, a, b, c = moveorder(temp_board, depth - 1, not maximizing_player, -beta, -alpha)
+
+        if printPaths:
+            scores[col] = new_score
+            terminals[col] = is_terminal_node(temp_board)
+            boards[col] = temp_board
+        if new_score > value or not valSet:
+            value = new_score
+            column = col
+            result = r
+            valSet = True
+        if value > alpha:
+            alpha = value
+        if alpha >= beta:
+            break
+        # if result == p: # skip to the end, return
+        #     break
+    return column, -value, result, scores, terminals, boards
 

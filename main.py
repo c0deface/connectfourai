@@ -163,9 +163,45 @@ class PlainMinMaxAI(Player):
         ply = 1
         while True:
             self.nextMove, _,  result, scores, terminals, boards = minimax(self.board.board, ply, self.color == 'R', printPaths=True)
-            # self.scores = scores
-            # self.terminals = terminals
-            # self.boards = boards
+            self.scores = scores
+            self.terminals = terminals
+            self.boards = boards
+            if result != None:
+                # print(f'PLY: {ply}')
+                # print(f'RESULT: {result}')
+                break
+            ply += 1
+
+class AlphaBetaAI(Player):
+    def __init__(self, b, c, t=0):
+        super().__init__(b, c, t)
+
+    def moveInternal(self):
+        # ev = pygame.event.get()
+        ply = 1
+        while True:
+            self.nextMove, _,  result, scores, terminals, boards = alphabeta(self.board.board, ply, self.color == 'R', -float('inf'), float('inf'), printPaths=True)
+            self.scores = scores
+            self.terminals = terminals
+            self.boards = boards
+            if result != None:
+                # print(f'PLY: {ply}')
+                # print(f'RESULT: {result}')
+                break
+            ply += 1
+
+class MoveOrderAI(Player):
+    def __init__(self, b, c, t=0):
+        super().__init__(b, c, t)
+
+    def moveInternal(self):
+        # ev = pygame.event.get()
+        ply = 1
+        while True:
+            self.nextMove, _,  result, scores, terminals, boards = moveorder(self.board.board, ply, self.color == 'R', -float('inf'), float('inf'), printPaths=True)
+            self.scores = scores
+            self.terminals = terminals
+            self.boards = boards
             if result != None:
                 # print(f'PLY: {ply}')
                 # print(f'RESULT: {result}')
@@ -204,11 +240,20 @@ class SimGame:
 # pygame.display.update()
 
 def simulateMany(p1, p2, t1, t2, N):
-    result = {"R": 0, "Y": 0, "D": 0}
+    result = {"P1": 0, "P2": 0, "D": 0}
     for i in range(N):
         print(f'Playing Game {i+1}')
-        g = SimGame(p1, p2, t1, t2)
+        if i % 2 == 0:
+            g = SimGame(p1, p2, t1, t2)
+        else:
+            g = SimGame(p2, p1, t2, t1)
         r = g.play()
+
+        if r != 'D':
+            if i % 2 == 0:
+                r = 'P1' if r == 'R' else 'P2'
+            else:
+                r = 'P1' if r == 'Y' else 'P2'
         print(f'Result: {r}')
         result[r] += 1
     return result
@@ -217,8 +262,8 @@ def simulateDebug(p1, p2, t1, t2):
     g = SimGame(p1, p2, t1, t2, debug=True)
     return g.play()
 
-print(simulateMany(RandomAI, RandomAI, 1, 1, 10))
-# print(simulateDebug(PlainMinMaxAI, PlainMinMaxAI, 1, 1))
+print(simulateMany(MoveOrderAI, PlainMinMaxAI, 1, 3, 10))
+# print(simulateDebug(AlphaBetaAI, MoveOrderAI, 1, 1))
 
 ### DEBUGGING
 
@@ -233,7 +278,7 @@ print(simulateMany(RandomAI, RandomAI, 1, 1, 10))
 
 # print(scores)
 # print(terminals)
-# # for b in boards:
-# #     print(b)
-# #     for i in range(len(boards[b])):
-# #         print(boards[b][5 - i])
+# for b in boards:
+#     print(b)
+#     for i in range(len(boards[b])):
+#         print(boards[b][5 - i])
