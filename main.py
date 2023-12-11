@@ -29,10 +29,11 @@ class Board:
         self.drawFull()
     
     def drop(self, clm, clr):
+        print(clm)
         self.board[self.open[clm]][clm] = clr
         self.open[clm] += 1
         if self.debug:
-            print(f'{clr} dropped a disk in column {clm+1}')
+            print(f'{clr} dropped a disk in column {clm}')
         self.drawCell(clm, self.open[clm] - 1)
     
     def drawCell(self, c, r):
@@ -121,6 +122,12 @@ class Player:
             self.board.drop(self.nextMove, self.color)
         else:
             self.board.drop(self.nextMove, self.color)
+        # print(self.color, self.scores)
+        # print(self.terminals)
+        # for b in self.boards:
+        #     print(b)
+        #     for i in range(len(self.boards[b])):
+        #         print(self.boards[b][5 - i])
         signal.alarm(0)
 
 class Human(Player):
@@ -154,7 +161,10 @@ class PlainMinMaxAI(Player):
         # ev = pygame.event.get()
         ply = 1
         while True:
-            self.nextMove = minimax(self.board.board, ply, True)[0]
+            self.nextMove, _, scores, terminals, boards = minimax(self.board.board, ply, True, printPaths=True)
+            self.scores = scores
+            self.terminals = terminals
+            self.boards = boards
             ply += 1
 
 

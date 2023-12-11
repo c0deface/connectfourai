@@ -48,7 +48,7 @@ def initiate_heuristic(window, p):
 
     if window.count(p) == 4:
         return float('inf')
-    elif window.count(opp) == 3:
+    elif window.count(opp) == 3 and window.count(EMPTY) == 1:
         return -float('inf')
     elif window.count(p) == 3 and window.count(EMPTY) == 1:
         return 10
@@ -70,7 +70,12 @@ def calc_heuristic(board, p):
             for i in range(4):
                 window.append(board[row][col+i])
             
-            score += initiate_heuristic(window, p)
+            w = initiate_heuristic(window, p)
+            if w == float('inf'):
+                return float('inf')
+            elif w == -float('inf'):
+                return -float('inf')
+            score += w
 
     # Evaluate vertically
     for col in range(COLS):
@@ -78,7 +83,12 @@ def calc_heuristic(board, p):
             window = []
             for i in range(4):
                 window.append(board[row+i][col])
-            score += initiate_heuristic(window, p)
+            w = initiate_heuristic(window, p)
+            if w == float('inf'):
+                return float('inf')
+            elif w == -float('inf'):
+                return -float('inf')
+            score += w
 
     # Evaluate diagonally (positive slope)
     for row in range(ROWS - 3):
@@ -86,7 +96,12 @@ def calc_heuristic(board, p):
             window = []
             for i in range(4):
                 window.append(board[row+i][col+i])
-            score += initiate_heuristic(window, p)
+            w = initiate_heuristic(window, p)
+            if w == float('inf'):
+                return float('inf')
+            elif w == -float('inf'):
+                return -float('inf')
+            score += w
 
     # Evaluate diagonally (negative slope)
     for row in range(3, ROWS):
@@ -94,36 +109,78 @@ def calc_heuristic(board, p):
             window = []
             for i in range(4):
                 window.append(board[row-i][col+i])
-            score += initiate_heuristic(window, p)
+            w = initiate_heuristic(window, p)
+            if w == float('inf'):
+                return float('inf')
+            elif w == -float('inf'):
+                return -float('inf')
+            score += w
 
     return score
 
 # when the game is over
 def is_terminal_node(board):
-    return winning_move(board, PLAYER1) or winning_move(board, PLAYER2) or len(get_valid_moves(board)) == 0
+    # is draw
+        valid_cols = get_valid_moves(board)
+        isDraw = True
+        for r in valid_cols:
+            if r != ROWS:
+                isDraw = False
+                break
+        if isDraw:
+            return True
+        
+        # check horizontal
+        for c in range(COLS-3):
+            for r in range(ROWS):
+                if board[r][c] == board[r][c+1] == board[r][c+2] == board[r][c+3] != ' ':
+                    return True
+        # check vertical
+        for c in range(COLS):
+            for r in range(ROWS-3):
+                if board[r][c] == board[r+1][c] == board[r+2][c] == board[r+3][c] != ' ':
+                    return True
+        # check increasing diag
+        for c in range(COLS-3):
+            for r in range(ROWS-3):
+                if board[r][c] == board[r+1][c+1] == board[r+2][c+2] == board[r+3][c+3] != ' ':
+                    return True
+        # check decreasing diag
+        for c in range(COLS-3):
+            for r in range(3, ROWS):
+                if board[r][c] == board[r-1][c+1] == board[r-2][c+2] == board[r-3][c+3] != ' ':
+                    return True
+        return False
 
 
 #MINIMAX IMPLEMENTATION with depth
-def minimax(board, depth, maximizing_player):
+def minimax(board, depth, maximizing_player, printPaths=False):
     # if it's over return as such
     valid_moves = get_valid_moves(board)
     random.shuffle(valid_moves)
     is_terminal = is_terminal_node(board)
+    scores = {}
+    terminals = {}
+    boards = {}
 
     p = PLAYER1 if maximizing_player else PLAYER2
     if depth == 0 or is_terminal:
         return (None, calc_heuristic(board, p))
 
-    value = -np.inf
-    column = -1
+    value = -float('inf')
+    column = random.choice(valid_moves)
     for col in valid_moves:
-        temp_board = [row[:] for row in board]
+        temp_board = [[x for x in row] for row in board]
         drop(temp_board, col, p)
-        new_score = minimax(temp_board, depth - 1, True)[1]
-        if new_score > value:
+        new_score = minimax(temp_board, depth - 1, not maximizing_player)[1]
+        if printPaths:
+            scores[col] = new_score
+            terminals[col] = is_terminal_node(temp_board)
+            boards[col] = temp_board
+        if new_score >= value:
             value = new_score
             column = col
-    return column, value
+    return column, -value, scores, terminals, boards
 
 def winning_move(board, player):
     # Check for a win in all directions
