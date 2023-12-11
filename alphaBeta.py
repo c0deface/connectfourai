@@ -19,8 +19,7 @@ def create_board():
 def is_valid(board, col):
     return board[ROWS-1][col] == EMPTY
 
-
-# return a list of columns you can add another piece to
+# return a list of columns that are not full/ that yoyu can still place a piece in
 def get_valid_moves(board):
     return [col for col in range(COLS) if is_valid(board, col)]
 
@@ -31,33 +30,88 @@ def drop(board, col, player):
         if board[row][col] == EMPTY:
             board[row][col] = player
             break
-
-
+    
 # basic heuristic for moves
+def isLoss(window, positions, board, p):
+    opp = PLAYER2 if p == PLAYER1 else PLAYER1
+    return window.count(opp) == 4
+
+def isWin(window, positions, board, p):
+    if window.count(p) == 3 and window.count(EMPTY) == 1:
+        blank = window.index(EMPTY)
+        return positions[blank][0] == 0 or board[positions[blank][0]-1][positions[blank][1]] != EMPTY
+    return False
+
 def initiate_heuristic(window, p):
-    # i should have 4
+    # i should have 3
     # opponent should not have 3
     # 
     # p = player , opp = opponent - 
     opp = PLAYER2 if p == PLAYER1 else PLAYER1
 
-    # if we have 4 we win
-    if window.count(p) == 4:
-        return float('inf')
-    # if oppenent has 3 lined up they win
-    elif window.count(opp) == 3 and window.count(EMPTY) == 1:
-        return -float('inf')
     # if we have 3 lined up 
-    elif window.count(p) == 3 and window.count(EMPTY) == 1:
+    if window.count(p) == 2 and window.count(EMPTY) == 2:
         return 10
-    # if opponent has 2 lined up
-    elif window.count(opp) == 2 and window.count(EMPTY) == 2:
-        return -12
+    # if opponent has 2 lined up, denying opponent is a bit more important than your own 2pcs at this stage
+    elif window.count(opp) == 3 and window.count(EMPTY) == 1:
+        return -10
+    # # if we have 2 lined up
+    # elif window.count(p) ==2 and window.count(EMPTY) == 1:
+    #     return 2
     else:
         return 0
 
+def checkWL(board, p, func):
+    for row in range(ROWS):
+        for col in range(COLS - 3):
+            #print(board)
+            
+            window = []
+            positions = []
+            for i in range(4):
+                window.append(board[row][col+i])
+                positions.append((row, col+i))
+            
+            if func(window, positions, board, p):
+                # print(window)
+                # print(positions)
+                return True
+            
+    # Evaluate vertically
+    for col in range(COLS):
+        for row in range(ROWS - 3):
+            window = []
+            positions = []
+            for i in range(4):
+                window.append(board[row+i][col])
+                positions.append((row+i, col))
+            if func(window, positions, board, p):
+                return True
 
-def calc_heuristic(board, p):
+    # Evaluate diagonally (positive slope)
+    for row in range(ROWS - 3):
+        for col in range(COLS - 3):
+            window = []
+            positions = []
+            for i in range(4):
+                window.append(board[row+i][col+i])
+                positions.append((row+i, col+i))
+            if func(window, positions, board, p):
+                return True
+
+    # Evaluate diagonally (negative slope)
+    for row in range(3, ROWS):
+        for col in range(COLS - 3):
+            window = []
+            positions = []
+            for i in range(4):
+                window.append(board[row-i][col+i])
+                positions.append((row-i, col+i))
+            if func(window, positions, board, p):
+                return True
+    return False
+
+def calc_neutral(board, p):
     score = 0
 
     # Evaluate horizontally
@@ -66,67 +120,62 @@ def calc_heuristic(board, p):
             #print(board)
             
             window = []
+            positions = []
             for i in range(4):
                 window.append(board[row][col+i])
-                
+                positions.append((row, col+1))
             
             w = initiate_heuristic(window, p)
-            if w == float('inf'):
-                return float('inf')
-            elif w == -float('inf'):
-                return -float('inf')
             score += w
 
     # Evaluate vertically
     for col in range(COLS):
         for row in range(ROWS - 3):
             window = []
+            positions = []
             for i in range(4):
                 window.append(board[row+i][col])
+                positions.append((row+i, col))
             w = initiate_heuristic(window, p)
-            if w == float('inf'):
-                return float('inf')
-            elif w == -float('inf'):
-                return -float('inf')
             score += w
 
     # Evaluate diagonally (positive slope)
     for row in range(ROWS - 3):
         for col in range(COLS - 3):
             window = []
+            positions = []
             for i in range(4):
                 window.append(board[row+i][col+i])
+                positions.append((row+i, col+i))
             w = initiate_heuristic(window, p)
-            if w == float('inf'):
-                return float('inf')
-            elif w == -float('inf'):
-                return -float('inf')
             score += w
 
     # Evaluate diagonally (negative slope)
     for row in range(3, ROWS):
         for col in range(COLS - 3):
             window = []
+            positions = []
             for i in range(4):
                 window.append(board[row-i][col+i])
+                positions.append((row-i, col+i))
             w = initiate_heuristic(window, p)
-            if w == float('inf'):
-                return float('inf')
-            elif w == -float('inf'):
-                return -float('inf')
             score += w
 
     return score
+
+def calc_heuristic(board, p):
+    if checkWL(board, p, isLoss):
+        return -float('inf')
+    if checkWL(board, p, isWin):
+        return float('inf')
+    return calc_neutral(board, p)
 
 # when the game is over
 def is_terminal_node(board):
     # is draw
         valid_cols = get_valid_moves(board)
-        isDraw = True
-        for r in valid_cols:
-            if r != ROWS:
-                isDraw = False
-                break
+        isDraw = len(valid_cols) == 0
+
         if isDraw:
             return 'D', True
         
@@ -152,7 +201,9 @@ def is_terminal_node(board):
                     return board[r][c], True
         return None, False
 
-def minimax(board, depth, alpha, beta, maximizing_player, printPaths=False):
+
+#MINIMAX IMPLEMENTATION with depth
+def minimax(board, depth, maximizing_player, printPaths=False):
     # if it's over return as such
 
     # get possible moves
@@ -160,17 +211,20 @@ def minimax(board, depth, alpha, beta, maximizing_player, printPaths=False):
     # run minmax staring with one of the possibilities at random
     random.shuffle(valid_moves)
     # return board , true if we have reached a win OR a tie OR a full board
-    is_terminal, result = is_terminal_node(board)
+    result, is_terminal = is_terminal_node(board)
 
     scores = {}
     terminals = {}
     boards = {}
 
     p = PLAYER1 if maximizing_player else PLAYER2
+    opp = PLAYER2 if p == PLAYER1 else PLAYER1
 
-    
     if depth == 0 or is_terminal:
-        return (None, calc_heuristic(board, p), result)
+        # for i in range(len(board)):
+        #     print(board[5 - i])
+        # print(calc_heuristic(board, p))
+        return (None, -calc_heuristic(board, p), result, None, None, None)
 
     value = -float('inf')
     column = random.choice(valid_moves)
@@ -179,23 +233,19 @@ def minimax(board, depth, alpha, beta, maximizing_player, printPaths=False):
     for col in valid_moves:
         temp_board = [[x for x in row] for row in board]
         drop(temp_board, col, p)
-        _, new_score, result = minimax(temp_board, depth - 1,alpha, beta,  not maximizing_player)
+
+        _, new_score, r, a, b, c = minimax(temp_board, depth - 1, not maximizing_player)
+
         if printPaths:
             scores[col] = new_score
             terminals[col] = is_terminal_node(temp_board)
             boards[col] = temp_board
-        # if result == p: # skip to the end, return
-        #     pass
         if new_score >= value:
             value = new_score
             column = col
-        if maximizing_player:
-            alpha = max( value, alpha)
-            if alpha >= beta:
-                break
-        else:   
-            beta = min(beta, value)
-            if beta<= alpha:
-                break   
+            result = r
+        # if result == p: # skip to the end, return
+        #     break
     return column, -value, result, scores, terminals, boards
-            
+
+

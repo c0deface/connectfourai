@@ -70,9 +70,11 @@ def checkWL(board, p, func):
             positions = []
             for i in range(4):
                 window.append(board[row][col+i])
-                positions.append((row, col+1))
+                positions.append((row, col+i))
             
             if func(window, positions, board, p):
+                # print(window)
+                # print(positions)
                 return True
             
     # Evaluate vertically
@@ -216,9 +218,12 @@ def minimax(board, depth, maximizing_player, printPaths=False):
     boards = {}
 
     p = PLAYER1 if maximizing_player else PLAYER2
-
+    opp = PLAYER2 if p == PLAYER1 else PLAYER1
 
     if depth == 0 or is_terminal:
+        # for i in range(len(board)):
+        #     print(board[5 - i])
+        # print(calc_heuristic(board, p))
         return (None, -calc_heuristic(board, p), result, None, None, None)
 
     value = -float('inf')
@@ -228,18 +233,19 @@ def minimax(board, depth, maximizing_player, printPaths=False):
     for col in valid_moves:
         temp_board = [[x for x in row] for row in board]
         drop(temp_board, col, p)
-# switch to minimizer
-        _, new_score, result, a, b, c = minimax(temp_board, depth - 1, not maximizing_player)
+
+        _, new_score, r, a, b, c = minimax(temp_board, depth - 1, not maximizing_player)
 
         if printPaths:
             scores[col] = new_score
             terminals[col] = is_terminal_node(temp_board)
             boards[col] = temp_board
-        if result == p: # skip to the end, return
-            pass
         if new_score >= value:
             value = new_score
             column = col
+            result = r
+        # if result == p: # skip to the end, return
+        #     break
     return column, -value, result, scores, terminals, boards
 
 

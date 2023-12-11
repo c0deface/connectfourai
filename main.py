@@ -29,7 +29,7 @@ class Board:
         self.drawFull()
     
     def drop(self, clm, clr):
-        print(clm)
+        # print(clm)
         self.board[self.open[clm]][clm] = clr
         self.open[clm] += 1
         if self.debug:
@@ -123,7 +123,7 @@ class Player:
             self.board.drop(self.nextMove, self.color)
         else:
             self.board.drop(self.nextMove, self.color)
-        print(self.color, self.scores)
+        # print(self.color, self.scores)
         # print(self.terminals)
         # for b in self.boards:
         #     print(b)
@@ -163,11 +163,12 @@ class PlainMinMaxAI(Player):
         ply = 1
         while True:
             self.nextMove, _,  result, scores, terminals, boards = minimax(self.board.board, ply, self.color == 'R', printPaths=True)
-            self.scores = scores
-            self.terminals = terminals
-            self.boards = boards
+            # self.scores = scores
+            # self.terminals = terminals
+            # self.boards = boards
             if result != None:
-                print(f'RESLT: {result}')
+                # print(f'PLY: {ply}')
+                # print(f'RESULT: {result}')
                 break
             ply += 1
 
@@ -202,12 +203,13 @@ class SimGame:
 # w.fill("blue")
 # pygame.display.update()
 
-def simulateMany(p1, p2, N):
+def simulateMany(p1, p2, t1, t2, N):
     result = {"R": 0, "Y": 0, "D": 0}
-    for _ in range(N):
-        # print(_)
-        g = SimGame(p1, p2)
+    for i in range(N):
+        print(f'Playing Game {i+1}')
+        g = SimGame(p1, p2, t1, t2)
         r = g.play()
+        print(f'Result: {r}')
         result[r] += 1
     return result
 
@@ -215,5 +217,23 @@ def simulateDebug(p1, p2, t1, t2):
     g = SimGame(p1, p2, t1, t2, debug=True)
     return g.play()
 
-# print(simulateMany(Computer, Computer, 1000))
-print(simulateDebug(PlainMinMaxAI, PlainMinMaxAI, 1, 1))
+print(simulateMany(RandomAI, RandomAI, 1, 1, 10))
+# print(simulateDebug(PlainMinMaxAI, PlainMinMaxAI, 1, 1))
+
+### DEBUGGING
+
+# board = [['Y', ' ', 'R', 'Y', 'Y', ' ', 'R'],
+#          [' ', ' ', 'Y', 'R', 'R', ' ', 'R'],
+#          [' ', ' ', 'Y', 'Y', 'R', ' ', 'Y'],
+#          [' ', ' ', 'R', 'Y', 'R', ' ', 'R'],
+#          [' ', ' ', ' ', ' ', 'Y', ' ', 'R'],
+#          [' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+
+# nextMove, _,  result, scores, terminals, boards = minimax(board, 4, False, printPaths=True)
+
+# print(scores)
+# print(terminals)
+# # for b in boards:
+# #     print(b)
+# #     for i in range(len(boards[b])):
+# #         print(boards[b][5 - i])
